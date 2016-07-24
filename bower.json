@@ -1,0 +1,13 @@
+{
+  "name": "product2",
+  "private": true,
+  "dependencies": {
+    "modernizr": "~2.8.1",
+    "d3": "^4.1.1",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  }
+}
