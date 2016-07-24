@@ -8,13 +8,15 @@ const wiredep = require('wiredep').stream;
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
 
-const browserify = require('browserify');
-const babelify = require('babelify');
-const buffer = require('vinyl-buffer');
-const source = require('vinyl-source-stream');
+// const browserify = require('browserify');
+// const babelify = require('babelify');
+// const buffer = require('vinyl-buffer');
+// const source = require('vinyl-source-stream');
 const sourcemaps = require('gulp-sourcemaps');
 
 // const webpack = require('webpack-stream');
+
+const webpack = require('gulp-webpack');
 
 gulp.task('styles', () => {
   return gulp.src('app/styles/*.scss')
@@ -48,19 +50,25 @@ gulp.task('styles', () => {
 //     .pipe(reload({stream: true}));
 // });  
 
+// gulp.task('scripts', function() {
+//     return browserify({
+//       entries: 'app/scripts/main.js',
+//       debug: true
+//     })
+//     .transform(babelify)
+//     .bundle()
+//     .pipe(source('main.js'))
+//     .pipe(buffer())
+//     .pipe(sourcemaps.init({loadMaps: true}))
+//     .pipe(sourcemaps.write('./'))
+//     .pipe(gulp.dest('.tmp/scripts'))
+//     .pipe(reload({stream: true}));
+// });
+
 gulp.task('scripts', function() {
-    return browserify({
-      entries: 'app/scripts/main.js',
-      debug: true
-    })
-    .transform(babelify)
-    .bundle()
-    .pipe(source('main.js'))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true}))
-    .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('.tmp/scripts'))
-    .pipe(reload({stream: true}));
+  return gulp.src('app/scripts/main.js')
+    .pipe(webpack( require('./webpack.config.js') ))
+    .pipe(gulp.dest('.tmp/scripts/'));
 });
 
 function lint(files, options) {
@@ -124,6 +132,14 @@ gulp.task('extras', () => {
   }).pipe(gulp.dest('dist'));
 });
 
+gulp.task('data', () => {
+  return gulp.src([
+    'app/data/**/*'
+  ])
+  .pipe(gulp.dest('.tmp/data'))
+  .pipe(gulp.dest('dist/data'));
+});
+
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('serve', ['styles', 'scripts', 'fonts'], () => {
@@ -141,12 +157,15 @@ gulp.task('serve', ['styles', 'scripts', 'fonts'], () => {
   gulp.watch([
     'app/*.html',
     'app/images/**/*',
-    '.tmp/fonts/**/*'
+    '.tmp/scripts/**/*',
+    '.tmp/fonts/**/*',
+    '.tmp/data/**/*'
   ]).on('change', reload);
 
   gulp.watch('app/styles/**/*.scss', ['styles']);
   gulp.watch('app/scripts/**/*.js', ['scripts']);
   gulp.watch('app/fonts/**/*', ['fonts']);
+  gulp.watch('app/data/**/*', ['data']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 
@@ -194,7 +213,7 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
+gulp.task('build', ['lint', 'html', 'images', 'fonts', 'extras', 'data'], () => {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
